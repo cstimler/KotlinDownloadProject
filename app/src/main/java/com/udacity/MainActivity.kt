@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if ( id == downloadID) {
+                Log.i("CHARLESS:", "download completed")
                 custom_button.buttonState = ButtonState.Completed
             }
         }
@@ -82,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         private const val glideURL =
             "https://github.com/bumptech/glide/releases/download/v3.6.0/glide-3.6.0.jar"
        // private const val udacityURL = "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter"
-        private const val udacityURL = "https://www.woopsywoopsy.com"
+        private const val udacityURL = "https://www.woopsywoopsy.com" // fake url
         private const val retrofitURL = "https://github.com/square/retrofit"
         private const val CHANNEL_ID = "channelId"
     }
