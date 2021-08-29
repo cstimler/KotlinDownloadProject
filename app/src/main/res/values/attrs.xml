@@ -3,6 +3,8 @@
     <declare-styleable name="LoadingButton">
 <!--   TODO: create custom attributes for the view-->
         <attr name="backgroundColoring" format="color"/>
+        <attr name="darkOverlayColor" format="color"/>
         <attr name="mainTextColor" format="color"/>
+        <attr name="circleColor" format="color"/>
     </declare-styleable>
 </resources>

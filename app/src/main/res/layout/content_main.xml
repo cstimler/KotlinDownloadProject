@@ -20,6 +20,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:backgroundColoring="#249D9F"
         app:mainTextColor="#D3FFD8"
+        app:darkOverlayColor="#014D4E"
+        app:circleColor="#FFA500"
         android:onClick="testFunc2"
          />
 
