@@ -13,6 +13,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
+import android.widget.Toast
 import androidx.core.content.withStyledAttributes
 import kotlinx.android.synthetic.main.content_main.view.*
 import java.lang.Math.PI
@@ -35,13 +36,15 @@ class LoadingButton @JvmOverloads constructor(
     private var sweepAngle: Float = 0f
     private var rightSideOfMovingRectangle: Float = 20f
 
-    private var stopAnimatingNow: Boolean = false
+      private var stopAnimatingNow: Boolean = false
+
 
     var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { p, old, new ->
         // https://knowledge.udacity.com/questions/420421
         when(new) {
             ButtonState.Loading -> animateView()
             ButtonState.Completed -> stopAnimation()
+            ButtonState.Indeterminate -> stopAnimationAndNotify()
             else -> Log.i("CHARLES when statement problem", "got to else")
         }
 
@@ -64,8 +67,15 @@ class LoadingButton @JvmOverloads constructor(
         }
     }
 
+
     fun stopAnimation() {
         stopAnimatingNow = true
+        Toast.makeText(rootView.context, "Your file has been downloaded! Check notifications.", Toast.LENGTH_SHORT).show()
+    }
+
+    fun stopAnimationAndNotify() {
+        stopAnimatingNow = true
+        Toast.makeText(rootView.context, "Problem with downloading, please try again later.", Toast.LENGTH_SHORT).show()
     }
 
 
@@ -142,8 +152,6 @@ class LoadingButton @JvmOverloads constructor(
                     rightSideOfMovingRectangle = 20f
                     custom_button.isEnabled = true
                     Log.i("CHARLES", "Gets to onAnimationEnd")
-                    //     setBackgroundColor(Color.YELLOW)
-                    //  animateView()
                 } else {
                     animateView()
                 }
