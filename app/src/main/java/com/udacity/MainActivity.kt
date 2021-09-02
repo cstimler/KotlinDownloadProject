@@ -1,6 +1,7 @@
 package com.udacity
 
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.app.*
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -18,30 +19,31 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import com.udacity.Utils.NotificationUtils.*
 
 private const val CHANNEL_ID = "download_channel"
 private const val CHANNEL_NAME = "download_result"
+private var fileDownloaded = " "
 
 class MainActivity  : AppCompatActivity() {
 
     private var downloadID: Long = 0
-
+/*
     private lateinit var notificationManager: NotificationManager
     private lateinit var pendingIntent: PendingIntent
     private lateinit var action: NotificationCompat.Action
-
+*/
     private lateinit var radioGroup: RadioGroup
 
     // id for EXTRA_DOWNLOAD_ID
-    private var id: Long? = -1
+ //   private var id: Long? = -1
     // private lateinit var radioButton: RadioButton
     //  private var broadcastExtraId: Long? = -1
 
     private lateinit var downloadManager: DownloadManager
-    // flag to shut down looper after the download completed
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,7 +81,7 @@ class MainActivity  : AppCompatActivity() {
             if (response == "NONE") {
                 Toast.makeText(
                     applicationContext,
-                    "Please select file to download",
+                    "Please select a file to download",
                     Toast.LENGTH_SHORT
                 ).show()
             } else {
@@ -97,6 +99,7 @@ class MainActivity  : AppCompatActivity() {
 
                     override fun onTick(millisUntilFinished: Long) {
                         if (custom_button.buttonState == ButtonState.Completed) {
+                            // prevent timer from reaching onFinish() if the download completed
                             cancel()
                             Log.i("CHARLESS", "countdowntimer has been cancelled")
                         }
@@ -108,7 +111,11 @@ class MainActivity  : AppCompatActivity() {
                         // stop the download, its taking too long for such a small file
                         downloadManager.remove(downloadID)
                         downloadID = -10
-                        Log.i("CHARLESS", "in Main Activity Handler")
+                        val notificationManager = ContextCompat.getSystemService(
+                            applicationContext,
+                            NotificationManager::class.java
+                        ) as NotificationManager
+                        notificationManager.sendNotification(applicationContext, fileDownloaded, "Fail")
 
                     }
                 }.start()
@@ -121,7 +128,7 @@ class MainActivity  : AppCompatActivity() {
 
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
             if (id == downloadID) {
                 Log.i("CHARLESS:", "download completed")
                 custom_button.buttonState = ButtonState.Completed
@@ -129,7 +136,7 @@ class MainActivity  : AppCompatActivity() {
                     context!!,
                     NotificationManager::class.java
                 ) as NotificationManager
-                notificationManager.sendNotification("testing", applicationContext)
+                notificationManager.sendNotification(applicationContext, fileDownloaded, "Success")
 
             }
         }
@@ -153,13 +160,9 @@ class MainActivity  : AppCompatActivity() {
         //  https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip
 
 
-        private const val glideURL =
-            "https://github.com/bumptech/glide/archive/master.zip"
-
-        // private const val udacityURL = "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip"
-        private const val udacityURL = "https://www.fakeurlblahblah.com"
+        private const val glideURL = "https://github.com/bumptech/glide/archive/master.zip"
+        private const val udacityURL = "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip"
         private const val retrofitURL = "https://github.com/square/retrofit/archive/master.zip"
-      //  private const val CHANNEL_ID = "channelId"
     }
 /*
     private fun scaleButton() {
@@ -176,13 +179,18 @@ class MainActivity  : AppCompatActivity() {
     fun findOutWhichRadioButtonIsSelected(): String {
         val radioSelected = radioGroup.checkedRadioButtonId
         Log.i("CHARLESradio selected:", R.id.radio_udacity.toString())
-        return when (radioSelected) {
-            R.id.radio_glide -> glideURL
-            R.id.radio_udacity -> udacityURL
-            R.id.radio_retrofit -> retrofitURL
-            else -> "NONE"
-        }
-
+            fileDownloaded = when (radioSelected) {
+                R.id.radio_glide -> getString(R.string.glide_file)
+                R.id.radio_udacity -> getString(R.string.udacity_file)
+                R.id.radio_retrofit -> getString(R.string.retrofit_file)
+                else -> "Unknown File"
+            }
+            return when (radioSelected) {
+                R.id.radio_glide -> glideURL
+                R.id.radio_udacity -> udacityURL
+                R.id.radio_retrofit -> retrofitURL
+                else -> "NONE"
+            }
     }
 
     private fun createChannel(channelId: String, channelName: String) {
@@ -203,9 +211,10 @@ class MainActivity  : AppCompatActivity() {
 
     private val NOTIFICATION_ID = 0
     private val REQUEST_CODE = 0
-    private val FLAGS = 0
+   // private val FLAGS = 0
 
-    fun NotificationManager.sendNotification(messageBody: String, applicationContext: Context) {
+    @SuppressLint("WrongConstant")
+    fun NotificationManager.sendNotification(applicationContext: Context, fileExtra: String, statusExtra: String) {
         val contentIntent = Intent(applicationContext, MainActivity::class.java)
         val contentPendingIntent = PendingIntent.getActivity(
             applicationContext,
@@ -215,12 +224,13 @@ class MainActivity  : AppCompatActivity() {
         )
 
         val detailIntent = Intent(applicationContext, DetailActivity::class.java)
-        val detailPendingIntent: PendingIntent = PendingIntent.getBroadcast(
+        detailIntent.putExtra("file", fileExtra)
+        detailIntent.putExtra("status", statusExtra)
+        val detailPendingIntent: PendingIntent = PendingIntent.getActivity(
             applicationContext,
             REQUEST_CODE,
             detailIntent,
-            FLAGS)
-
+            Intent.FLAG_ACTIVITY_NEW_TASK)
         val builder = NotificationCompat.Builder(
             applicationContext,
             applicationContext.getString(R.string.download_notification_channel_id)
@@ -228,17 +238,15 @@ class MainActivity  : AppCompatActivity() {
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle(applicationContext
                 .getString(R.string.notification_title))
-            .setContentText(messageBody)
+            .setContentText("The Project 3 Respository is Downloaded")
             .setContentIntent(contentPendingIntent)
             .setAutoCancel(true)
           //  .setChannelId(getString(R.string.download_notification_channel_id))
-                /*
             .addAction(
                 R.drawable.ic_launcher_foreground,
                 applicationContext.getString(R.string.notification_button),
                 detailPendingIntent
             )
-                 */
             .setPriority(NotificationCompat.PRIORITY_HIGH)
              notify(NOTIFICATION_ID, builder.build())
         Log.i("CHARLESX", "completed sendNotification")

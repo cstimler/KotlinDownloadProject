@@ -12,4 +12,9 @@
     <string name="button_name">Click me</string>
     <string name="button_loading">We are loading </string>
     <string name="title_activity_detail">DetailActivity</string>
+    <string name="file_name">File name:</string>
+    <string name="status">Status:</string>
+    <string name="glide_file">Glide - Image Binding Library by BumpTech</string>
+    <string name="udacity_file">LoadApp - Current repository by Udacity</string>
+    <string name="retrofit_file">Retrofit - Type-safe HTTP client for Android and Java by Square, Inc</string>
 </resources>

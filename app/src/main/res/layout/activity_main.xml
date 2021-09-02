@@ -32,14 +32,14 @@
             android:id="@+id/radio_glide"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Glide - Image Binding Libary by BumpTech"
+            android:text="@string/glide_file"
             android:textSize = "24sp"
             />
         <RadioButton
             android:id="@+id/radio_udacity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="LoadApp - Current repository by Udacity"
+            android:text="@string/udacity_file"
             android:textSize = "24sp"
             android:layout_marginTop="20dp"
             />
@@ -47,7 +47,7 @@
             android:id="@+id/radio_retrofit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Retrofit - Type-safe HTTP client for Android and Java by Square, Inc"
+            android:text="@string/retrofit_file"
             android:textSize = "24sp"
             android:layout_marginTop="20dp"
             />
