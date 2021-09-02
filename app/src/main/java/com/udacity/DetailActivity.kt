@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_detail.*
 import org.w3c.dom.Text
@@ -26,6 +27,7 @@ class DetailActivity : AppCompatActivity() {
         intent = getIntent()
         val fileName = findViewById<TextView>(R.id.file_name)
         val statusType = findViewById<TextView>(R.id.status)
+        val thisToolbar = findViewById<Toolbar>(R.id.toolbar)
        // val OKButton = findViewById<Button>(R.id.OKButton)
         val thisFile = intent.getStringExtra("file")
         val thisStatus = intent.getStringExtra("status")
@@ -37,6 +39,7 @@ class DetailActivity : AppCompatActivity() {
                    //https://stackoverflow.com/questions/45401813/how-to-use-new-version-of-getresources-getcolor
             statusType.setTextColor(ContextCompat.getColor(applicationContext, R.color.colorAccent))
         }
+        supportActionBar?.setTitle("Download Results")
         Log.i("CHARLESY", "filename has been received and it is" + intent.toString())
     }
 
