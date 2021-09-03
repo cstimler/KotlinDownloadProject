@@ -24,13 +24,14 @@ class DetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail)
         setSupportActionBar(toolbar)
+        // getIntent() retrieves the intent that opened this view:
         intent = getIntent()
         val fileName = findViewById<TextView>(R.id.file_name)
         val statusType = findViewById<TextView>(R.id.status)
-        val thisToolbar = findViewById<Toolbar>(R.id.toolbar)
-       // val OKButton = findViewById<Button>(R.id.OKButton)
+        // obtain the passed information:
         val thisFile = intent.getStringExtra("file")
         val thisStatus = intent.getStringExtra("status")
+        // place the passed information in the proper locations in the layout file:
         fileName.text = thisFile
         statusType.text = thisStatus
         if (thisStatus == "Fail") {
@@ -40,19 +41,11 @@ class DetailActivity : AppCompatActivity() {
             statusType.setTextColor(ContextCompat.getColor(applicationContext, R.color.colorAccent))
         }
         supportActionBar?.setTitle("Download Results")
-        Log.i("CHARLESY", "filename has been received and it is" + intent.toString())
     }
-
+// This is called by the OK button's "onClick" method in activity_detail.xml
     fun openMainActivity(view: View) {
         val mainActivityIntent = Intent(applicationContext, MainActivity::class.java)
         startActivity(mainActivityIntent)
     }
 }
-/*
-    class DetailReceiver: BroadcastReceiver() {
-        override fun onReceive(p0: Context?, p1: Intent?) {
-            Log.i("CHARLESY", "intent has been received and it is" + intent.toString())
-        }
-    }
 
-*/

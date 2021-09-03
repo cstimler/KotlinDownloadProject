@@ -23,6 +23,7 @@ import kotlin.properties.Delegates
 class LoadingButton @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
+    // all the below variables will be set by paint, init, or the onDraw() method below:
     private var widthSize = 0f
     private var heightSize = 0f
     private var backgroundColoring = 0
@@ -42,22 +43,23 @@ class LoadingButton @JvmOverloads constructor(
     var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { p, old, new ->
         // https://knowledge.udacity.com/questions/420421
         when(new) {
+            // the button loads until it reaches "Completed" (success) or "Indeterminate" (failure):
             ButtonState.Loading -> animateView()
             ButtonState.Completed -> stopAnimation()
             ButtonState.Indeterminate -> stopAnimationAndNotify()
-            else -> Log.i("CHARLES when statement problem", "got to else")
+            else -> Log.i("LoadingButton statement problem", "got to else")
         }
 
     }
     private var paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         textAlign = Paint.Align.CENTER
-        val desiredSPSize = 20f
+        val desiredSPSize = 20f // trial and error
         textSize = scaleForSP(desiredSPSize)
-        // color = Color.BLACK
         color = backgroundColoring
     }
 
+        // the init assignments use the attributes in the attrs.xml file to populate:
     init {
         context.withStyledAttributes(attrs, R.styleable.LoadingButton) {
             backgroundColoring = getColor(R.styleable.LoadingButton_backgroundColoring, 0)
@@ -69,10 +71,11 @@ class LoadingButton @JvmOverloads constructor(
 
 
     fun stopAnimation() {
+        // this represents a successful download; stopAnimatingNow directs button to stop loading animation.
         stopAnimatingNow = true
         Toast.makeText(rootView.context, "Your file has been downloaded! Check notifications.", Toast.LENGTH_SHORT).show()
     }
-
+        // this represents a failed download; stopAnimatingNow directs button to stop loading animation.
     fun stopAnimationAndNotify() {
         stopAnimatingNow = true
         Toast.makeText(rootView.context, "Problem with downloading, please try again later.", Toast.LENGTH_SHORT).show()
@@ -87,65 +90,47 @@ class LoadingButton @JvmOverloads constructor(
         canvas?.getClipBounds(z)
         heightSize = z.height().toFloat()
         widthSize = z.width().toFloat()
+        // draw the background rectangle:
         paint.color = backgroundColoring
+        // using 20f below because the layout_margin is "20" in the xml layout file:
         canvas?.drawRect(20f, 20f, widthSize, heightSize, paint)
+        // draw the moving rectangle that sweeps over the background:
         paint.color = darkOverlayColor
         canvas?.drawRect(20f, 20f, rightSideOfMovingRectangle, heightSize, paint)
-        //  paint.color = Color.RED
+        // draw the text, centering by basing location on widthSize and heightSize:
         paint.color = mainTextColor
-        // paint.getTextBounds(buttonText, 0, buttonText.length, z)
         canvas?.drawText(buttonText, widthSize / 2, heightSize / 2 + 10, paint)
-       // Log.i(
-      //      "CHARLES: left, bottom",
-      //      z.left.toFloat().toString() + " " + z.bottom.toFloat().toString()
-     //   )
+        // circle is centered vertically, and anchored to the right side of the rectangle given
+        // a space that is aesthetically pleasing, moved one heightSize to the left:
         paint.color = circleColor
         canvas?.drawArc(widthSize-heightSize, heightSize/4, widthSize-heightSize/2, 3*heightSize/4, 0f, sweepAngle, true, paint)
-     //   Log.i("CHARLES in onDraw:", sweepAngle.toString())
-     //   Log.i("CHARLES IN onDraw - update regular sweepAngle", sweepAngle.toString())
-     //   Log.i("CHARLES GENERIC ONDRAW", "THIS JUST HAS TO BE CALLED")
     }
 
-
-
-    /*
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val minw: Int = paddingLeft + paddingRight + suggestedMinimumWidth
-        val w: Int = resolveSizeAndState(minw, widthMeasureSpec, 1)
-        val h: Int = resolveSizeAndState(
-            MeasureSpec.getSize(w),
-            heightMeasureSpec,
-            0
-        )
-        widthSize = w
-        heightSize = h
-        setMeasuredDimension(w, h)
-    }
- */
 // stackoverflow.com/questions/4946295/android-expand-collapse-animation
     companion object fun animateView() {
-        Log.i("CHARLES", "Got into animate View")
+        // animator must take circle arc from 0 to 360 degrees:
         val valueAnimator = ValueAnimator.ofFloat(0f, 360.0f)
         valueAnimator.addUpdateListener { animation ->
             sweepAngle = animation.animatedValue as Float
+            // the provided math adjustments take the animator from left to right side:
             rightSideOfMovingRectangle =
                 (animation.animatedValue as Float) * ((widthSize - 30f) / 360) + 30f
-       //     Log.i("CHARLES - right side of moving rect is:", rightSideOfMovingRectangle.toString())
-            // requestLayout()
+      // absolutely must call invalidate() here or the animation will not work!!!
             invalidate()
-            //   setBackgroundColor(Color.BLUE)
-      //      Log.i("CHARLES animateView's sweepAngle", sweepAngle.toString())
         }
         valueAnimator.addListener(object : Animator.AnimatorListener {
             override fun onAnimationStart(p0: Animator?) {
+                // once the animation starts the text must change and the button must be disabled:
                 buttonText = "We are loading"
                 custom_button.isEnabled = false
+                // set flag to keep animating by default unless button state changes:
                 stopAnimatingNow = false
                 //lets get the coordinates for the button:
                 //Based on: https://knowledge.udacity.com/questions/672428
             }
 
             override fun onAnimationEnd(p0: Animator?) {
+                // stopAnimatingNow will be true if button state is either Completed or Indeterminate:
                 if (stopAnimatingNow) {
                     sweepAngle = 0f
                     buttonText = "Download"
@@ -153,6 +138,7 @@ class LoadingButton @JvmOverloads constructor(
                     custom_button.isEnabled = true
                     Log.i("CHARLES", "Gets to onAnimationEnd")
                 } else {
+                    // if button state is still Loading then loading animation will continue:
                     animateView()
                 }
             }
@@ -166,8 +152,7 @@ class LoadingButton @JvmOverloads constructor(
             }
 
         })
-        valueAnimator.duration = 1000
-        Log.i("CHARLES", "Gets down to start")
+        valueAnimator.duration = 1000  // one second
         valueAnimator.start()
     }
 

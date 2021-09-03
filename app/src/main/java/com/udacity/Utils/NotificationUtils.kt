@@ -9,7 +9,7 @@ import androidx.core.app.NotificationCompat
 import com.udacity.DetailActivity
 import com.udacity.MainActivity
 import com.udacity.R
-
+// nice to have this as a reference, but I added the below to MainActivity.ket:
 class NotificationUtils {
     // Notification ID.
     private val NOTIFICATION_ID = 0

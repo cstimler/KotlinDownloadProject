@@ -26,23 +26,13 @@ import com.udacity.Utils.NotificationUtils.*
 
 private const val CHANNEL_ID = "download_channel"
 private const val CHANNEL_NAME = "download_result"
+//fileDownloaded is global variable that holds filename to be passed to detail view:
 private var fileDownloaded = " "
 
 class MainActivity  : AppCompatActivity() {
 
     private var downloadID: Long = 0
-/*
-    private lateinit var notificationManager: NotificationManager
-    private lateinit var pendingIntent: PendingIntent
-    private lateinit var action: NotificationCompat.Action
-*/
     private lateinit var radioGroup: RadioGroup
-
-    // id for EXTRA_DOWNLOAD_ID
- //   private var id: Long? = -1
-    // private lateinit var radioButton: RadioButton
-    //  private var broadcastExtraId: Long? = -1
-
     private lateinit var downloadManager: DownloadManager
 
 
@@ -51,7 +41,7 @@ class MainActivity  : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         radioGroup = findViewById<RadioGroup>(R.id.radio_group)
-
+        supportActionBar?.setTitle("Android Download App - Udacity Project 3")
         registerReceiver(receiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
         // get notification channel created early
@@ -66,7 +56,7 @@ class MainActivity  : AppCompatActivity() {
             val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
             val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
 
-            // if no connection provide warning and return:
+            // if no internet connection provide warning and return:
 
             if (!isConnected) {
                 Toast.makeText(
@@ -76,8 +66,8 @@ class MainActivity  : AppCompatActivity() {
                 ).show()
                 return@setOnClickListener
             }
-
             val response = findOutWhichRadioButtonIsSelected()
+            // if no file selected, alert user:
             if (response == "NONE") {
                 Toast.makeText(
                     applicationContext,
@@ -86,22 +76,17 @@ class MainActivity  : AppCompatActivity() {
                 ).show()
             } else {
                 download(response)
+                // ButtonState.Loading signals to custom button its current state:
                 custom_button.buttonState = ButtonState.Loading
-                Log.i("CHARLESS", "at top of else in click listener")
-                // https://stackoverflow.com/questions/65488410/handler-postdelayed-is-now-deprecated-what-function-to-call-instead
-                // if there is no completion after 30 seconds, cancel download and ask user to try again:
-                // flag logic will effectively cancel a prior loop that had not been canceled -
-                // the flag is false by default so that flag==true will be true UNLESS the loop was
-                // previously entered but not completed (say the last download happened quickly and this
-                // loop is still running when we request the next download).  In that case the flag will still be "true" and the next loop to execute
-                // will have flag = false and will not print out, leaving the current loop to complete.
+               // CountDownTimer allows 30 seconds for download which should be enough for files
+                // of this size.  If it needs more time then it is considered a "fail".  I
+                // discussed this approach with a mentor @ https://knowledge.udacity.com/questions/681012
                 object : CountDownTimer(30000, 1000) {
 
                     override fun onTick(millisUntilFinished: Long) {
                         if (custom_button.buttonState == ButtonState.Completed) {
                             // prevent timer from reaching onFinish() if the download completed
                             cancel()
-                            Log.i("CHARLESS", "countdowntimer has been cancelled")
                         }
                     }
 
@@ -115,6 +100,7 @@ class MainActivity  : AppCompatActivity() {
                             applicationContext,
                             NotificationManager::class.java
                         ) as NotificationManager
+                        // send "fail" notification to detail activity:
                         notificationManager.sendNotification(applicationContext, fileDownloaded, "Fail")
 
                     }
@@ -129,13 +115,15 @@ class MainActivity  : AppCompatActivity() {
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+            // if successfully downloaded a file:
             if (id == downloadID) {
-                Log.i("CHARLESS:", "download completed")
+                // let custon button know to show downloading is completed:
                 custom_button.buttonState = ButtonState.Completed
                 val notificationManager = ContextCompat.getSystemService(
                     context!!,
                     NotificationManager::class.java
                 ) as NotificationManager
+                // send "success" notification to detail activity:
                 notificationManager.sendNotification(applicationContext, fileDownloaded, "Success")
 
             }
@@ -157,34 +145,25 @@ class MainActivity  : AppCompatActivity() {
     }
 
     companion object {
-        //  https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip
-
-
+        // by changing the below urls, it is possible to see the response of the app
+        // when it cannot download a file:
         private const val glideURL = "https://github.com/bumptech/glide/archive/master.zip"
         private const val udacityURL = "https://github.com/udacity/nd940-c3-advanced-android-programming-project-starter/archive/master.zip"
         private const val retrofitURL = "https://github.com/square/retrofit/archive/master.zip"
-    }
-/*
-    private fun scaleButton() {
-        val animator = ObjectAnimator.ofFloat(custom_button, View.SCALE_X, 0.1f)
-        animator.duration = 1000
-        animator.start()
-    }
-*/
-
-    fun clickMade() {
-        custom_button.animateView()
     }
 
     fun findOutWhichRadioButtonIsSelected(): String {
         val radioSelected = radioGroup.checkedRadioButtonId
         Log.i("CHARLESradio selected:", R.id.radio_udacity.toString())
+        // load the name of the file into "fileDownloaded" so this can be passed to
+        // the detail activity:
             fileDownloaded = when (radioSelected) {
                 R.id.radio_glide -> getString(R.string.glide_file)
                 R.id.radio_udacity -> getString(R.string.udacity_file)
                 R.id.radio_retrofit -> getString(R.string.retrofit_file)
                 else -> "Unknown File"
             }
+        // return the proper url so that it can be downloaded:
             return when (radioSelected) {
                 R.id.radio_glide -> glideURL
                 R.id.radio_udacity -> udacityURL
@@ -192,7 +171,7 @@ class MainActivity  : AppCompatActivity() {
                 else -> "NONE"
             }
     }
-
+// must create a channel if Android version is "O" or later:
     private fun createChannel(channelId: String, channelName: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannel = NotificationChannel(
@@ -211,8 +190,8 @@ class MainActivity  : AppCompatActivity() {
 
     private val NOTIFICATION_ID = 0
     private val REQUEST_CODE = 0
-   // private val FLAGS = 0
 
+    // Boilerplate to set up notification to detail activity:
     @SuppressLint("WrongConstant")
     fun NotificationManager.sendNotification(applicationContext: Context, fileExtra: String, statusExtra: String) {
         val contentIntent = Intent(applicationContext, MainActivity::class.java)
@@ -241,7 +220,6 @@ class MainActivity  : AppCompatActivity() {
             .setContentText("The Project 3 Respository is Downloaded")
             .setContentIntent(contentPendingIntent)
             .setAutoCancel(true)
-          //  .setChannelId(getString(R.string.download_notification_channel_id))
             .addAction(
                 R.drawable.ic_launcher_foreground,
                 applicationContext.getString(R.string.notification_button),
@@ -249,11 +227,6 @@ class MainActivity  : AppCompatActivity() {
             )
             .setPriority(NotificationCompat.PRIORITY_HIGH)
              notify(NOTIFICATION_ID, builder.build())
-        Log.i("CHARLESX", "completed sendNotification")
     }
-}
-
-fun NotificationManager.cancelNotifications() {
-    cancelAll()
 }
 

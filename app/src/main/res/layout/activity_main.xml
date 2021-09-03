@@ -20,6 +20,12 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.3"
+        android:src="@mipmap/download_icon" />
+
     <RadioGroup
         android:id="@+id/radio_group"
         android:layout_width="match_parent"
